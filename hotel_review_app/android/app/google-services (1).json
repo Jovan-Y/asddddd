@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "132448896320",
+    "firebase_url": "https://proyekuaspab2-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "proyekuaspab2",
+    "storage_bucket": "proyekuaspab2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:132448896320:android:ac7c3cfa2f795fa32fe6a5",
+        "android_client_info": {
+          "package_name": "com.company.hotel_review_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNYfw-zai5SEG5V2NjnXqs23aODCn91GE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:132448896320:android:31662105ca72472a2fe6a5",
+        "android_client_info": {
+          "package_name": "com.example.hotel_review_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNYfw-zai5SEG5V2NjnXqs23aODCn91GE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
