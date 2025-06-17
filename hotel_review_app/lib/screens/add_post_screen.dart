@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:hotel_review_app/models/post.dart';
 import 'package:hotel_review_app/services/firestore_service.dart';
 import 'package:hotel_review_app/services/location_service.dart';
@@ -31,41 +32,79 @@ class _AddPostScreenState extends State<AddPostScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // --- KUNCI API TELAH DIGANTI ---
-  final String _apiKey = "AIzaSyD2K3_YrJPCZvpDOVfU6idJe66nUMIOsYg";
+  final String _apiKey = "AIzaSyCNYfw-zai5SEG5V2NjnXqs23aODCn91GE";
 
- Future<void> _getCurrentLocation() async {
+Future<void> _getCurrentLocation() async {
+  // Sembunyikan notifikasi sebelumnya agar tidak menumpuk
+  ScaffoldMessenger.of(context).hideCurrentSnackBar();
   setState(() => _isLoading = true);
+
   try {
-    final position = await _locationService.getCurrentLocation();
-    if (position != null) {
-      final address = await _locationService.getAddressFromCoordinates(
-          position.latitude, position.longitude, _apiKey);
-      if (mounted) {
-        setState(() {
-          _locationAddress = address;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lokasi berhasil diambil!')),
-        );
-      }
-    }
-  } catch (e) {
-    // --- PERBAIKAN DI SINI ---
-    // Tampilkan pesan error kepada pengguna melalui SnackBar.
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal mendapatkan lokasi: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-    print("Error getting location: $e"); // Tetap cetak di konsol untuk debug
-    // --- AKHIR PERBAIKAN ---
-  } finally {
-    if (mounted) {
+    // --- LANGKAH 1: Cek Layanan GPS ---
+    ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Langkah 1: Mengecek layanan GPS...')));
+    // Diberi jeda agar notifikasi sempat terbaca
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('GAGAL di Langkah 1: GPS tidak aktif!'),
+          backgroundColor: Colors.red));
       setState(() => _isLoading = false);
+      return;
     }
+
+    // --- LANGKAH 2: Minta Izin Lokasi ---
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Langkah 2: Mengecek & meminta izin...'),
+        backgroundColor: Colors.green));
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      // Baris ini akan menampilkan dialog pop-up izin
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('GAGAL di Langkah 2: Izin ditolak!'),
+          backgroundColor: Colors.red));
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    // --- LANGKAH 3: Ambil Koordinat ---
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Langkah 3: Mengambil koordinat GPS...'),
+        backgroundColor: Colors.green));
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    Position position = await Geolocator.getCurrentPosition();
+
+    // --- LANGKAH 4: Ubah ke Alamat ---
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Langkah 4: Mengubah koordinat ${position.latitude.toStringAsFixed(2)} ke alamat...'),
+        backgroundColor: Colors.green));
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    final address = await _locationService.getAddressFromCoordinates(
+        position.latitude, position.longitude, _apiKey);
+    setState(() {
+      _locationAddress = address;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('SEMUA BERHASIL! Alamat: $address'),
+        backgroundColor: Colors.green));
+
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('ERROR: $e'), backgroundColor: Colors.red));
+  } finally {
+    setState(() => _isLoading = false);
   }
 }
 
