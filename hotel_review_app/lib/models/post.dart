@@ -9,11 +9,11 @@ class Post {
   final String? imageUrl;
   final DateTime timestamp;
 
-  // -- Kolom Baru --
-  final double rating;          // Rating bintang (misal: 4.5)
-  final String? locationAddress; // Alamat hasil reverse geocoding
+  // -- Kolom yang Diperbarui --
+  final double rating;
+  final String? locationAddress;
   final String? hotelName;
-  final String? hotelPlaceId;    // ID unik hotel dari Google Places API
+  final String? hotelOsmId;    // Diubah dari hotelPlaceId
 
   Post({
     required this.id,
@@ -22,11 +22,10 @@ class Post {
     required this.statusText,
     this.imageUrl,
     required this.timestamp,
-    // -- Parameter Baru --
     required this.rating,
     this.locationAddress,
     this.hotelName,
-    this.hotelPlaceId,
+    this.hotelOsmId, // Diubah dari hotelPlaceId
   });
 
   factory Post.fromDocument(DocumentSnapshot doc) {
@@ -38,11 +37,10 @@ class Post {
       statusText: data['statusText'] ?? '',
       imageUrl: data['imageUrl'],
       timestamp: (data['timestamp'] as Timestamp).toDate(),
-      // -- Ambil Data Baru --
       rating: (data['rating'] ?? 0.0).toDouble(),
       locationAddress: data['locationAddress'],
       hotelName: data['hotelName'],
-      hotelPlaceId: data['hotelPlaceId'],
+      hotelOsmId: data['hotelOsmId'], // Mengambil hotelOsmId dari Firestore
     );
   }
 
@@ -53,11 +51,10 @@ class Post {
       'statusText': statusText,
       'imageUrl': imageUrl,
       'timestamp': Timestamp.fromDate(timestamp),
-      // -- Simpan Data Baru --
       'rating': rating,
       'locationAddress': locationAddress,
       'hotelName': hotelName,
-      'hotelPlaceId': hotelPlaceId,
+      'hotelOsmId': hotelOsmId, // Menyimpan hotelOsmId ke Firestore
     };
   }
 }

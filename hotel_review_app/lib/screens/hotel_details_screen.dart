@@ -3,16 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:hotel_review_app/models/post.dart';
 import 'package:hotel_review_app/services/firestore_service.dart';
-import 'package:hotel_review_app/screens/home_screen.dart'; // kita gunakan lagi PostCard
+import 'package:hotel_review_app/screens/home_screen.dart';
 
 class HotelDetailsScreen extends StatelessWidget {
   final String hotelName;
-  final String hotelPlaceId;
+  // --- GANTI hotelPlaceId MENJADI hotelOsmId ---
+  final String hotelOsmId;
 
   const HotelDetailsScreen({
     super.key,
     required this.hotelName,
-    required this.hotelPlaceId,
+    required this.hotelOsmId, // Terima hotelOsmId
   });
 
   @override
@@ -24,7 +25,8 @@ class HotelDetailsScreen extends StatelessWidget {
         title: Text(hotelName),
       ),
       body: StreamBuilder<List<Post>>(
-        stream: firestoreService.getPostsForHotel(hotelPlaceId),
+        // --- GUNAKAN hotelOsmId UNTUK QUERY KE FIRESTORE ---
+        stream: firestoreService.getPostsForHotel(hotelOsmId),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -74,7 +76,6 @@ class HotelDetailsScreen extends StatelessWidget {
                   itemCount: posts.length,
                   itemBuilder: (context, index) {
                     // Gunakan PostCard dari home_screen, tapi sembunyikan nama hotel
-                    // karena kita sudah berada di halaman detail hotel tersebut.
                     return PostCard(post: posts[index], showHotelName: false);
                   },
                 ),

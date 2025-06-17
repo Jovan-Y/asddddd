@@ -57,8 +57,6 @@ class HomeScreen extends StatelessWidget {
             itemCount: posts.length,
             itemBuilder: (context, index) {
               Post post = posts[index];
-              // Di sini pemanggilan PostCard tidak perlu diubah karena
-              // showHotelName sudah default ke true.
               return PostCard(post: post);
             },
           );
@@ -70,16 +68,13 @@ class HomeScreen extends StatelessWidget {
 
 class PostCard extends StatelessWidget {
   final Post post;
-  // --- PERUBAHAN DI SINI ---
-  final bool showHotelName; // 1. Tambahkan variabel ini
+  final bool showHotelName;
 
-  // 2. Perbarui konstruktor untuk menerima parameter baru
   const PostCard({
     super.key,
     required this.post,
-    this.showHotelName = true, // Beri nilai default true
+    this.showHotelName = true,
   });
-  // --- AKHIR PERUBAHAN ---
 
   @override
   Widget build(BuildContext context) {
@@ -115,17 +110,17 @@ class PostCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            // --- GUNAKAN PARAMETER BARU DI SINI ---
             if (showHotelName && post.hotelName != null)
               InkWell(
                 onTap: () {
-                  if (post.hotelPlaceId != null) {
+                  // --- PERUBAHAN DI SINI ---
+                  if (post.hotelOsmId != null) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => HotelDetailsScreen(
                           hotelName: post.hotelName!,
-                          hotelPlaceId: post.hotelPlaceId!,
+                          hotelOsmId: post.hotelOsmId!, // Mengirim OSM ID
                         ),
                       ),
                     );

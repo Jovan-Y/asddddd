@@ -6,7 +6,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:hotel_review_app/models/post.dart';
 import 'package:hotel_review_app/services/firestore_service.dart';
 import 'package:hotel_review_app/services/location_service.dart';
-import 'package:hotel_review_app/services/hotel_api_service.dart';
+import 'package:hotel_review_app/services/osm_api_service.dart'; // IMPORT SERVICE BARU
+import 'package:hotel_review_app/firebase_options.dart';
 
 class AddPostScreen extends StatefulWidget {
   const AddPostScreen({super.key});
@@ -23,90 +24,59 @@ class _AddPostScreenState extends State<AddPostScreen> {
   double _rating = 3.0;
   String? _locationAddress;
   String? _selectedHotelName;
-  String? _selectedPlaceId;
+  String? _selectedPlaceId; // Ini sekarang akan berisi OSM ID
   List<Map<String, String>> _hotelSuggestions = [];
 
   final FirestoreService _firestoreService = FirestoreService();
   final LocationService _locationService = LocationService();
-  final HotelApiService _hotelApiService = HotelApiService();
+  final OsmApiService _osmApiService = OsmApiService(); // GANTI DENGAN SERVICE BARU
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // --- KUNCI API TELAH DIGANTI ---
-  final String _apiKey = "AIzaSyCNYfw-zai5SEG5V2NjnXqs23aODCn91GE";
+  Future<void> _getCurrentLocation() async {
+    // Sembunyikan notifikasi sebelumnya agar tidak menumpuk
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    setState(() => _isLoading = true);
 
-Future<void> _getCurrentLocation() async {
-  // Sembunyikan notifikasi sebelumnya agar tidak menumpuk
-  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-  setState(() => _isLoading = true);
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Layanan lokasi tidak aktif.');
+      }
 
-  try {
-    // --- LANGKAH 1: Cek Layanan GPS ---
-    ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Langkah 1: Mengecek layanan GPS...')));
-    // Diberi jeda agar notifikasi sempat terbaca
-    await Future.delayed(const Duration(milliseconds: 1500));
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
 
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('GAGAL di Langkah 1: GPS tidak aktif!'),
-          backgroundColor: Colors.red));
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        throw Exception('Izin lokasi ditolak.');
+      }
+
+      Position position = await Geolocator.getCurrentPosition();
+
+      // Untuk getAddressFromCoordinates, kita masih butuh Google API Key
+      // karena fitur geocoding OSM (Nominatim) tidak seandal Google.
+      // Jika Anda ingin sepenuhnya bebas dari Google, bagian ini juga perlu diganti.
+      final address = await _locationService.getAddressFromCoordinates(
+          position.latitude,
+          position.longitude,
+          DefaultFirebaseOptions.currentPlatform.apiKey);
+
+      setState(() {
+        _locationAddress = address;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Lokasi berhasil ditambahkan: $address'),
+          backgroundColor: Colors.green));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('ERROR: $e'), backgroundColor: Colors.red));
+    } finally {
       setState(() => _isLoading = false);
-      return;
     }
-
-    // --- LANGKAH 2: Minta Izin Lokasi ---
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Langkah 2: Mengecek & meminta izin...'),
-        backgroundColor: Colors.green));
-    await Future.delayed(const Duration(milliseconds: 1500));
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      // Baris ini akan menampilkan dialog pop-up izin
-      permission = await Geolocator.requestPermission();
-    }
-
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('GAGAL di Langkah 2: Izin ditolak!'),
-          backgroundColor: Colors.red));
-      setState(() => _isLoading = false);
-      return;
-    }
-
-    // --- LANGKAH 3: Ambil Koordinat ---
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Langkah 3: Mengambil koordinat GPS...'),
-        backgroundColor: Colors.green));
-    await Future.delayed(const Duration(milliseconds: 1500));
-
-    Position position = await Geolocator.getCurrentPosition();
-
-    // --- LANGKAH 4: Ubah ke Alamat ---
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Langkah 4: Mengubah koordinat ${position.latitude.toStringAsFixed(2)} ke alamat...'),
-        backgroundColor: Colors.green));
-    await Future.delayed(const Duration(milliseconds: 1500));
-
-    final address = await _locationService.getAddressFromCoordinates(
-        position.latitude, position.longitude, _apiKey);
-    setState(() {
-      _locationAddress = address;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('SEMUA BERHASIL! Alamat: $address'),
-        backgroundColor: Colors.green));
-
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('ERROR: $e'), backgroundColor: Colors.red));
-  } finally {
-    setState(() => _isLoading = false);
   }
-}
 
   Future<void> _postReview() async {
     if (_statusController.text.isEmpty || _selectedPlaceId == null) {
@@ -132,7 +102,7 @@ Future<void> _getCurrentLocation() async {
       rating: _rating,
       locationAddress: _locationAddress,
       hotelName: _selectedHotelName,
-      hotelPlaceId: _selectedPlaceId,
+      hotelOsmId: _selectedPlaceId, // Menyimpan OSM ID
     );
 
     try {
@@ -156,7 +126,7 @@ Future<void> _getCurrentLocation() async {
       }
       return;
     }
-    final results = await _hotelApiService.searchHotels(query, _apiKey);
+    final results = await _osmApiService.searchHotels(query); // Panggil service OSM
     if (mounted) {
       setState(() => _hotelSuggestions = results);
     }
@@ -196,7 +166,7 @@ Future<void> _getCurrentLocation() async {
                               setState(() {
                                 _selectedHotelName =
                                     suggestion['description']!;
-                                _selectedPlaceId = suggestion['place_id']!;
+                                _selectedPlaceId = suggestion['place_id']!; // Menyimpan OSM ID
                                 _hotelController.text = _selectedHotelName!;
                                 _hotelSuggestions = [];
                               });
