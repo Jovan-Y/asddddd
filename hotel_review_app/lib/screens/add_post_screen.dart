@@ -175,8 +175,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
                     onChanged: _searchHotels, // Panggil pencarian saat teks berubah
                   ),
                   if (_hotelSuggestions.isNotEmpty)
-                    Container(
-                      constraints: BoxConstraints(maxHeight: 200), // Batasi tinggi saran
+                    SizedBox(
+                      height: 200, // Batasi tinggi saran
                       child: ListView.builder(
                         shrinkWrap: true,
                         itemCount: _hotelSuggestions.length,

@@ -103,7 +103,7 @@ class PostCard extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Row(
                   children: [
-                    Icon(Icons.hotel, size: 18, color: Colors.blueAccent),
+                    const Icon(Icons.hotel, size: 18, color: Colors.blueAccent),
                     const SizedBox(width: 8),
                     Text(
                       'Hotel: ${post.hotelName}',
