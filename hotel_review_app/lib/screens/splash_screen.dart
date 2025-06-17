@@ -1,7 +1,7 @@
 // lib/screens/splash_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:hotel_review_app/main.dart'; // Import main.dart untuk mengakses AuthHandler
+import 'package:hotel_review_app/main.dart'; 
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -27,8 +27,6 @@ class _SplashScreenState extends State<SplashScreen>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _controller.forward();
 
-    // Setelah 3 detik, navigasi ke AuthHandler
-    // AuthHandler yang akan memutuskan apakah akan menampilkan HomeScreen atau AuthGate
     Timer(const Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
@@ -46,12 +44,11 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 26, 188, 156), // Warna dari contoh Anda
+      backgroundColor: const Color.fromARGB(255, 26, 188, 156), 
       body: Center(
         child: FadeTransition(
           opacity: _animation,
-          // Placeholder logo. Ganti dengan logo Anda sendiri.
-          child: Image.asset('assets/gojo.jpg', width: 150, height: 150)
+          child: Image.asset('assets/logo.jpg', width: 300, height: 300)
         ),
       ),
     );
