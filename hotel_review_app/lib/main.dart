@@ -2,132 +2,24 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hotel_review_app/screens/home_screen.dart'; // Import HomeScreen
-
-// Anda bisa menghapus bagian ini jika menggunakan flutterfire configure
-// import 'firebase_options.dart'; // Import file firebase_options.dart jika menggunakan
+import 'package:hotel_review_app/screens/auth_gate.dart';
+import 'package:hotel_review_app/screens/home_screen.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  try {
-    // Pastikan Anda telah menambahkan konfigurasi Firebase ke file main.dart atau
-    // mengandalkan firebase_options.dart yang dihasilkan secara otomatis oleh FlutterFire CLI.
-    await Firebase.initializeApp(
-      // options: DefaultFirebaseOptions.currentPlatform, // Gunakan ini jika Anda memiliki firebase_options.dart
-    );
-    print("Firebase berhasil diinisialisasi.");
-  } catch (e) {
-    print("Gagal menginisialisasi Firebase: $e");
-    // Anda bisa menampilkan pesan error di UI jika ingin
-  }
+  // Inisialisasi Firebase dengan opsi platform yang benar
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  User? _user;
-  bool _isFirebaseInitialized = false; // Status inisialisasi Firebase
-  String? _authError; // Untuk menyimpan pesan kesalahan autentikasi
-
-  @override
-  void initState() {
-    super.initState();
-    // Memeriksa status inisialisasi Firebase
-    if (Firebase.apps.isNotEmpty) {
-      _isFirebaseInitialized = true;
-    }
-
-    _auth.authStateChanges().listen((user) {
-      setState(() {
-        _user = user;
-        _authError = null; // Reset error saat status berubah
-      });
-      if (user == null && _isFirebaseInitialized) {
-        // Jika tidak ada user yang login dan Firebase sudah diinisialisasi, coba login anonim
-        _signInAnonymously();
-      }
-    });
-
-    // Handle kasus jika _auth.authStateChanges() tidak langsung memicu sign-in
-    if (_auth.currentUser == null && _isFirebaseInitialized) {
-      _signInAnonymously();
-    }
-  }
-
-  // Fungsi untuk login anonim
-  Future<void> _signInAnonymously() async {
-    if (_auth.currentUser != null) return; // Jangan sign-in lagi jika sudah ada user
-    setState(() {
-      _authError = null; // Bersihkan error sebelumnya
-    });
-    try {
-      await _auth.signInAnonymously();
-      print("Pengguna berhasil login secara anonim");
-    } catch (e) {
-      print("Gagal login anonim: $e");
-      setState(() {
-        _authError = "Gagal login. Periksa koneksi atau konfigurasi Firebase: $e";
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    // Tentukan widget home berdasarkan status user dan error
-    Widget homeWidget;
-    if (!_isFirebaseInitialized) {
-      homeWidget = const Scaffold(
-        backgroundColor: Colors.grey, // Latar belakang abu-abu agar indikator terlihat
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Menginisialisasi Firebase...', style: TextStyle(color: Colors.white)),
-            ],
-          ),
-        ),
-      );
-    } else if (_user == null) {
-      homeWidget = Scaffold(
-        backgroundColor: Colors.blueGrey, // Latar belakang abu-abu kebiruan
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
-              const SizedBox(height: 16),
-              const Text(
-                'Mencoba login anonim...',
-                style: TextStyle(color: Colors.white),
-              ),
-              if (_authError != null) ...[
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    _authError!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      );
-    } else {
-      homeWidget = const HomeScreen();
-    }
-
     return MaterialApp(
       title: 'Aplikasi Ulasan Hotel',
       theme: ThemeData(
@@ -170,7 +62,38 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
       ),
-      home: homeWidget,
+      // Gunakan AuthHandler sebagai halaman utama
+      home: const AuthHandler(),
+    );
+  }
+}
+
+// Widget ini bertanggung jawab untuk mengatur alur autentikasi
+class AuthHandler extends StatelessWidget {
+  const AuthHandler({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        // Tampilkan loading indicator saat koneksi sedang aktif
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        // Jika pengguna sudah login (data ada), arahkan ke HomeScreen
+        if (snapshot.hasData) {
+          return const HomeScreen();
+        }
+
+        // Jika tidak, arahkan ke halaman login/registrasi
+        return const AuthGate();
+      },
     );
   }
 }

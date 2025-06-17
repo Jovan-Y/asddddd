@@ -1,14 +1,11 @@
 // lib/screens/add_post_screen.dart
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hotel_review_app/models/post.dart';
 import 'package:hotel_review_app/services/firestore_service.dart';
-// import 'package:hotel_review_app/services/storage_service.dart'; // DIHAPUS
 import 'package:hotel_review_app/services/location_service.dart';
 import 'package:hotel_review_app/services/hotel_api_service.dart';
-// import 'dart:io'; // DIHAPUS karena File tidak lagi digunakan
-// import 'package:image_picker/image_picker.dart'; // DIHAPUS
 
 class AddPostScreen extends StatefulWidget {
   const AddPostScreen({super.key});
@@ -20,126 +17,116 @@ class AddPostScreen extends StatefulWidget {
 class _AddPostScreenState extends State<AddPostScreen> {
   final TextEditingController _statusController = TextEditingController();
   final TextEditingController _hotelController = TextEditingController();
-  // File? _imageFile; // DIHAPUS
-  double? _latitude;
-  double? _longitude;
   bool _isLoading = false;
-  String? _selectedHotel;
-  final HotelApiService _hotelApiService = HotelApiService();
-  List<String> _hotelSuggestions = [];
 
-  // final ImagePicker _picker = ImagePicker(); // DIHAPUS
-  // final StorageService _storageService = StorageService(); // DIHAPUS
+  double _rating = 3.0;
+  String? _locationAddress;
+  String? _selectedHotelName;
+  String? _selectedPlaceId;
+  List<Map<String, String>> _hotelSuggestions = [];
+
   final FirestoreService _firestoreService = FirestoreService();
   final LocationService _locationService = LocationService();
+  final HotelApiService _hotelApiService = HotelApiService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Fungsi _pickImage() DIHAPUS
+  // --- KUNCI API TELAH DIGANTI ---
+  final String _apiKey = "AIzaSyD2K3_YrJPCZvpDOVfU6idJe66nUMIOsYg";
 
-  // Fungsi untuk mendapatkan lokasi saat ini
-  Future<void> _getCurrentLocation() async {
-    setState(() {
-      _isLoading = true;
-    });
-    try {
-      Position? position = await _locationService.getCurrentLocation();
-      if (position != null) {
+ Future<void> _getCurrentLocation() async {
+  setState(() => _isLoading = true);
+  try {
+    final position = await _locationService.getCurrentLocation();
+    if (position != null) {
+      final address = await _locationService.getAddressFromCoordinates(
+          position.latitude, position.longitude, _apiKey);
+      if (mounted) {
         setState(() {
-          _latitude = position.latitude;
-          _longitude = position.longitude;
+          _locationAddress = address;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Lokasi berhasil diambil!')),
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tidak dapat mengambil lokasi.')),
-        );
       }
-    } catch (e) {
-      print('Error getting location: $e');
+    }
+  } catch (e) {
+    // --- PERBAIKAN DI SINI ---
+    // Tampilkan pesan error kepada pengguna melalui SnackBar.
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error mengambil lokasi: $e')),
+        SnackBar(
+          content: Text('Gagal mendapatkan lokasi: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+    }
+    print("Error getting location: $e"); // Tetap cetak di konsol untuk debug
+    // --- AKHIR PERBAIKAN ---
+  } finally {
+    if (mounted) {
+      setState(() => _isLoading = false);
     }
   }
+}
 
-  // Fungsi untuk memposting ulasan
   Future<void> _postReview() async {
-    if (_statusController.text.isEmpty) { // Perubahan: Hanya cek status text
+    if (_statusController.text.isEmpty || _selectedPlaceId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ulasan tidak boleh kosong!')),
+        const SnackBar(content: Text('Ulasan dan nama hotel harus diisi!')),
       );
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    // String? imageUrl; // DIHAPUS: Tidak ada lagi proses unggah gambar
-    // if (_imageFile != null) { ... } // DIHAPUS
+    setState(() => _isLoading = true);
+    final user = _auth.currentUser;
+    if (user == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
 
     final post = Post(
-      id: '', // ID akan diisi oleh Firestore
-      userId: _auth.currentUser?.uid ?? 'anonim',
+      id: '',
+      userId: user.uid,
+      userName: user.displayName,
       statusText: _statusController.text,
-      imageUrl: null, // Selalu null karena tidak ada unggah gambar
-      hotelName: _selectedHotel ?? _hotelController.text.trim(),
-      latitude: _latitude,
-      longitude: _longitude,
       timestamp: DateTime.now(),
+      rating: _rating,
+      locationAddress: _locationAddress,
+      hotelName: _selectedHotelName,
+      hotelPlaceId: _selectedPlaceId,
     );
 
     try {
       await _firestoreService.addPost(post);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ulasan berhasil diposting!')),
-      );
-      Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context);
+      }
     } catch (e) {
-      print('Gagal memposting ulasan: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal memposting ulasan: $e')),
-      );
+      print("Error posting review: $e");
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
-  // Fungsi untuk mencari hotel dan menampilkan saran
   void _searchHotels(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _hotelSuggestions = [];
-      });
+    if (query.length < 3) {
+      if (mounted) {
+        setState(() => _hotelSuggestions = []);
+      }
       return;
     }
-    List<String> suggestions = await _hotelApiService.searchHotels(query);
-    setState(() {
-      _hotelSuggestions = suggestions;
-    });
-  }
-
-  @override
-  void dispose() {
-    _statusController.dispose();
-    _hotelController.dispose();
-    super.dispose();
+    final results = await _hotelApiService.searchHotels(query, _apiKey);
+    if (mounted) {
+      setState(() => _hotelSuggestions = results);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Buat Ulasan Baru'),
-      ),
+      appBar: AppBar(title: const Text('Buat Ulasan Baru')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -148,75 +135,86 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   TextField(
-                    controller: _statusController,
-                    maxLines: 5,
-                    decoration: InputDecoration(
-                      hintText: 'Bagikan pengalaman hotel Anda...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      contentPadding: const EdgeInsets.all(16),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Bagian untuk pemilihan/tampilan gambar telah DIHAPUS
-                  // _imageFile != null
-                  //     ? Stack(...)
-                  //     : Container(...)
-                  TextField(
                     controller: _hotelController,
                     decoration: InputDecoration(
-                      hintText: 'Nama Hotel (Opsional)',
+                      hintText: 'Cari Nama Hotel...',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                          borderRadius: BorderRadius.circular(12)),
                       prefixIcon: const Icon(Icons.hotel),
                     ),
-                    onChanged: _searchHotels, // Panggil pencarian saat teks berubah
+                    onChanged: _searchHotels,
                   ),
                   if (_hotelSuggestions.isNotEmpty)
                     SizedBox(
-                      height: 200, // Batasi tinggi saran
+                      height: 200,
                       child: ListView.builder(
-                        shrinkWrap: true,
                         itemCount: _hotelSuggestions.length,
                         itemBuilder: (context, index) {
                           final suggestion = _hotelSuggestions[index];
                           return ListTile(
-                            title: Text(suggestion),
+                            title: Text(suggestion['description']!),
                             onTap: () {
                               setState(() {
-                                _hotelController.text = suggestion;
-                                _selectedHotel = suggestion; // Set hotel yang dipilih
-                                _hotelSuggestions = []; // Sembunyikan saran
+                                _selectedHotelName =
+                                    suggestion['description']!;
+                                _selectedPlaceId = suggestion['place_id']!;
+                                _hotelController.text = _selectedHotelName!;
+                                _hotelSuggestions = [];
                               });
+                              FocusScope.of(context).unfocus();
                             },
                           );
                         },
                       ),
                     ),
+                  const SizedBox(height: 24),
+                  Text('Beri Rating Anda:',
+                      style: Theme.of(context).textTheme.titleMedium),
+                  Center(
+                    child: RatingBar.builder(
+                      initialRating: _rating,
+                      minRating: 1,
+                      direction: Axis.horizontal,
+                      itemCount: 5,
+                      itemPadding:
+                          const EdgeInsets.symmetric(horizontal: 4.0),
+                      itemBuilder: (context, _) =>
+                          const Icon(Icons.star, color: Colors.amber),
+                      onRatingUpdate: (rating) {
+                        setState(() => _rating = rating);
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  TextField(
+                    controller: _statusController,
+                    maxLines: 5,
+                    decoration: InputDecoration(
+                      hintText: 'Bagikan pengalaman hotel Anda...',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: _getCurrentLocation,
                     icon: const Icon(Icons.location_on),
-                    label: Text(_latitude == null
-                        ? 'Tambahkan Lokasi'
-                        : 'Lokasi Ditambahkan (${_latitude!.toStringAsFixed(2)}, ${_longitude!.toStringAsFixed(2)})'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _latitude == null ? Colors.orange : Colors.green,
-                      foregroundColor: Colors.white,
-                    ),
+                    label: Text(_locationAddress == null
+                        ? 'Tambahkan Lokasi Saat Ini'
+                        : 'Lokasi Ditambahkan'),
                   ),
+                  if (_locationAddress != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(_locationAddress!,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey[600])),
+                    ),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: _postReview,
-                    child: const Text(
-                      'Posting Ulasan',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                    ),
+                    child: const Text('Posting Ulasan',
+                        style: TextStyle(fontSize: 18)),
                   ),
                 ],
               ),

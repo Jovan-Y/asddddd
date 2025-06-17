@@ -15,4 +15,13 @@ class FirestoreService {
   Future<void> addPost(Post post) {
     return _db.collection('posts').add(post.toMap());
   }
+  Stream<List<Post>> getPostsForHotel(String placeId) {
+    return _db
+        .collection('posts')
+        .where('hotelPlaceId', isEqualTo: placeId)
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => Post.fromDocument(doc)).toList());
+  }
 }
