@@ -1,5 +1,6 @@
 // lib/screens/profile_screen.dart
 import 'package:flutter/material.dart';
+import 'package:hotel_review_app/main.dart';
 import 'package:hotel_review_app/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -74,16 +75,48 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const Divider(),
                 const SizedBox(height: 16),
-                // Logout Button
+                // **PERBAIKAN FITUR LOGOUT**
                 ElevatedButton.icon(
                   onPressed: () async {
-                    await authService.signOut();
-                    // Navigator akan ditangani oleh AuthHandler
+                    // Tampilkan dialog konfirmasi sebelum logout
+                    final bool? shouldLogout = await showDialog<bool>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Konfirmasi Logout'),
+                          content: const Text('Apakah Anda yakin ingin keluar?'),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: const Text('Batal'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: const Text('Ya, Keluar'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+
+                    // Jika pengguna mengkonfirmasi, lakukan logout
+                    if (shouldLogout == true) {
+                      await authService.signOut();
+                      // Navigasi ke AuthHandler dan hapus semua rute sebelumnya
+                      // Ini akan memastikan pengguna kembali ke halaman login (AuthGate)
+                      if (context.mounted) {
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (context) => const AuthHandler()),
+                          (Route<dynamic> route) => false,
+                        );
+                      }
+                    }
                   },
                   icon: const Icon(Icons.logout),
                   label: const Text('LOGOUT'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

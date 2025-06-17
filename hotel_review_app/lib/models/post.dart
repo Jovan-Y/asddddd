@@ -6,26 +6,26 @@ class Post {
   final String userId;
   final String? userName;
   final String statusText;
-  final String? imageUrl;
+  final String? imageUrl; // <-- DIKEMBALIKAN
   final DateTime timestamp;
-
-  // -- Kolom yang Diperbarui --
   final double rating;
   final String? locationAddress;
   final String? hotelName;
-  final String? hotelOsmId;    // Diubah dari hotelPlaceId
+  final String? hotelOsmId;
+  final List<String> likes;
 
   Post({
     required this.id,
     required this.userId,
     this.userName,
     required this.statusText,
-    this.imageUrl,
+    this.imageUrl, // <-- DIKEMBALIKAN
     required this.timestamp,
     required this.rating,
     this.locationAddress,
     this.hotelName,
-    this.hotelOsmId, // Diubah dari hotelPlaceId
+    this.hotelOsmId,
+    required this.likes,
   });
 
   factory Post.fromDocument(DocumentSnapshot doc) {
@@ -35,12 +35,13 @@ class Post {
       userId: data['userId'] ?? 'Anonim',
       userName: data['userName'],
       statusText: data['statusText'] ?? '',
-      imageUrl: data['imageUrl'],
+      imageUrl: data['imageUrl'], // <-- DIKEMBALIKAN
       timestamp: (data['timestamp'] as Timestamp).toDate(),
       rating: (data['rating'] ?? 0.0).toDouble(),
       locationAddress: data['locationAddress'],
       hotelName: data['hotelName'],
-      hotelOsmId: data['hotelOsmId'], // Mengambil hotelOsmId dari Firestore
+      hotelOsmId: data['hotelOsmId'],
+      likes: List<String>.from(data['likes'] ?? []),
     );
   }
 
@@ -49,12 +50,13 @@ class Post {
       'userId': userId,
       'userName': userName,
       'statusText': statusText,
-      'imageUrl': imageUrl,
+      'imageUrl': imageUrl, // <-- DIKEMBALIKAN
       'timestamp': Timestamp.fromDate(timestamp),
       'rating': rating,
       'locationAddress': locationAddress,
       'hotelName': hotelName,
-      'hotelOsmId': hotelOsmId, // Menyimpan hotelOsmId ke Firestore
+      'hotelOsmId': hotelOsmId,
+      'likes': likes,
     };
   }
 }

@@ -20,6 +20,7 @@ dependencies:
   # Cloud Firestore (Database)
   cloud_firestore: ^5.6.9 # Diperbarui dari 4.17.5
   # Firebase Storage (untuk gambar)
+  firebase_storage: ^12.1.1 # <-- DIKEMBALIKAN
 
   # Untuk memilih gambar dari galeri/kamera
   image_picker: ^1.0.7 # Sudah versi terbaru, tidak ada perubahan

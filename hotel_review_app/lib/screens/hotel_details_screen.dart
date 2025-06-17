@@ -3,21 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:hotel_review_app/models/post.dart';
 import 'package:hotel_review_app/services/firestore_service.dart';
-import 'package:hotel_review_app/screens/home_screen.dart';
+import 'package:hotel_review_app/screens/home_screen.dart'; // Mengimpor PostCard
 
 class HotelDetailsScreen extends StatelessWidget {
   final String hotelName;
-  // --- GANTI hotelPlaceId MENJADI hotelOsmId ---
   final String hotelOsmId;
 
   const HotelDetailsScreen({
     super.key,
     required this.hotelName,
-    required this.hotelOsmId, // Terima hotelOsmId
+    required this.hotelOsmId,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Membuat instance dari FirestoreService
     final FirestoreService firestoreService = FirestoreService();
 
     return Scaffold(
@@ -25,7 +25,6 @@ class HotelDetailsScreen extends StatelessWidget {
         title: Text(hotelName),
       ),
       body: StreamBuilder<List<Post>>(
-        // --- GUNAKAN hotelOsmId UNTUK QUERY KE FIRESTORE ---
         stream: firestoreService.getPostsForHotel(hotelOsmId),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -39,13 +38,11 @@ class HotelDetailsScreen extends StatelessWidget {
           }
 
           final posts = snapshot.data!;
-          // Hitung rata-rata rating
           double totalRating = posts.fold(0, (sum, item) => sum + item.rating);
           double averageRating = posts.isNotEmpty ? totalRating / posts.length : 0;
 
           return Column(
             children: [
-              // Tampilkan ringkasan rating
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -70,13 +67,16 @@ class HotelDetailsScreen extends StatelessWidget {
                 ),
               ),
               const Divider(),
-              // Tampilkan daftar ulasan
               Expanded(
                 child: ListView.builder(
                   itemCount: posts.length,
                   itemBuilder: (context, index) {
-                    // Gunakan PostCard dari home_screen, tapi sembunyikan nama hotel
-                    return PostCard(post: posts[index], showHotelName: false);
+                    // **PERBAIKAN:** Menambahkan argumen firestoreService yang diperlukan
+                    return PostCard(
+                      post: posts[index],
+                      firestoreService: firestoreService,
+                      showHotelName: false,
+                    );
                   },
                 ),
               ),
