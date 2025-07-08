@@ -1,4 +1,4 @@
-// lib/screens/profile_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:hotel_review_app/main.dart';
 import 'package:hotel_review_app/services/auth_service.dart';
@@ -25,7 +25,7 @@ class ProfileScreen extends StatelessWidget {
           : ListView(
               padding: const EdgeInsets.all(24.0),
               children: [
-                // Profile Header
+                // profil
                 Column(
                   children: [
                     const CircleAvatar(
@@ -56,7 +56,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 32),
                 const Divider(),
-                // Profile Menu
+
                 ProfileMenuItem(
                   icon: Icons.email,
                   title: 'Email',
@@ -75,10 +75,8 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const Divider(),
                 const SizedBox(height: 16),
-                // **PERBAIKAN FITUR LOGOUT**
                 ElevatedButton.icon(
                   onPressed: () async {
-                    // Tampilkan dialog konfirmasi sebelum logout
                     final bool? shouldLogout = await showDialog<bool>(
                       context: context,
                       builder: (BuildContext context) {
@@ -99,11 +97,8 @@ class ProfileScreen extends StatelessWidget {
                       },
                     );
 
-                    // Jika pengguna mengkonfirmasi, lakukan logout
                     if (shouldLogout == true) {
                       await authService.signOut();
-                      // Navigasi ke AuthHandler dan hapus semua rute sebelumnya
-                      // Ini akan memastikan pengguna kembali ke halaman login (AuthGate)
                       if (context.mounted) {
                         Navigator.of(context).pushAndRemoveUntil(
                           MaterialPageRoute(builder: (context) => const AuthHandler()),
@@ -129,7 +124,6 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-// Widget kustom untuk item menu di profil
 class ProfileMenuItem extends StatelessWidget {
   final IconData icon;
   final String title;

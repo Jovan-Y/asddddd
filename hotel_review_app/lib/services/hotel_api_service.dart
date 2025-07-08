@@ -1,4 +1,4 @@
-// lib/services/hotel_api_service.dart
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -11,8 +11,6 @@ class HotelApiService {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-
-        // --- Logging yang Ditingkatkan ---
         if (data['status'] != 'OK') {
           print('Google Places API Error: ${data['status']}');
           if (data['error_message'] != null) {
@@ -20,7 +18,6 @@ class HotelApiService {
           }
           return [];
         }
-        // --- Akhir Peningkatan ---
 
         final predictions = data['predictions'] as List;
         return predictions.map((p) {

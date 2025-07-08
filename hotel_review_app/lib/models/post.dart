@@ -1,4 +1,4 @@
-// lib/models/post.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Post {
@@ -6,7 +6,7 @@ class Post {
   final String userId;
   final String? userName;
   final String statusText;
-  final String? imageUrl; // <-- DIKEMBALIKAN
+  final String? imageUrl; 
   final DateTime timestamp;
   final double rating;
   final String? locationAddress;
@@ -19,7 +19,7 @@ class Post {
     required this.userId,
     this.userName,
     required this.statusText,
-    this.imageUrl, // <-- DIKEMBALIKAN
+    this.imageUrl, 
     required this.timestamp,
     required this.rating,
     this.locationAddress,
@@ -35,7 +35,7 @@ class Post {
       userId: data['userId'] ?? 'Anonim',
       userName: data['userName'],
       statusText: data['statusText'] ?? '',
-      imageUrl: data['imageUrl'], // <-- DIKEMBALIKAN
+      imageUrl: data['imageUrl'], 
       timestamp: (data['timestamp'] as Timestamp).toDate(),
       rating: (data['rating'] ?? 0.0).toDouble(),
       locationAddress: data['locationAddress'],
@@ -50,7 +50,7 @@ class Post {
       'userId': userId,
       'userName': userName,
       'statusText': statusText,
-      'imageUrl': imageUrl, // <-- DIKEMBALIKAN
+      'imageUrl': imageUrl, 
       'timestamp': Timestamp.fromDate(timestamp),
       'rating': rating,
       'locationAddress': locationAddress,

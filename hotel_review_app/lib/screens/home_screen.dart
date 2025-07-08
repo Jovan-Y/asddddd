@@ -1,4 +1,4 @@
-// lib/screens/home_screen.dart
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -43,7 +43,6 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Ulasan Hotel'),
         actions: [
-          // Tombol add_comment dihapus dari sini
           IconButton(
             icon: const Icon(Icons.person),
             onPressed: () {
@@ -101,7 +100,6 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       ),
-      // **PERUBAHAN:** Tombol untuk membuat postingan baru dipindahkan ke sini
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -117,8 +115,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-
-// PostCard tetap StatefulWidget seperti sebelumnya
 class PostCard extends StatefulWidget {
   final Post post;
   final FirestoreService firestoreService;

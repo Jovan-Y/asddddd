@@ -1,10 +1,10 @@
-// lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hotel_review_app/screens/auth_gate.dart';
 import 'package:hotel_review_app/screens/home_screen.dart';
-import 'package:hotel_review_app/screens/splash_screen.dart'; // <-- IMPORT BARU
+import 'package:hotel_review_app/screens/splash_screen.dart'; 
 import 'firebase_options.dart';
 
 void main() async {
@@ -23,16 +23,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Aplikasi Ulasan Hotel',
       theme: ThemeData(
-        // ... tema Anda tidak berubah
       ),
-      // --- PERUBAHAN DI SINI ---
-      // Atur SplashScreen sebagai halaman utama
       home: const SplashScreen(),
     );
   }
 }
 
-// Widget AuthHandler tidak perlu diubah
 class AuthHandler extends StatelessWidget {
   const AuthHandler({super.key});
 

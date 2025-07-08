@@ -1,9 +1,9 @@
-// lib/screens/hotel_details_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:hotel_review_app/models/post.dart';
 import 'package:hotel_review_app/services/firestore_service.dart';
-import 'package:hotel_review_app/screens/home_screen.dart'; // Mengimpor PostCard
+import 'package:hotel_review_app/screens/home_screen.dart'; 
 
 class HotelDetailsScreen extends StatelessWidget {
   final String hotelName;
@@ -17,7 +17,6 @@ class HotelDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Membuat instance dari FirestoreService
     final FirestoreService firestoreService = FirestoreService();
 
     return Scaffold(
@@ -71,7 +70,6 @@ class HotelDetailsScreen extends StatelessWidget {
                 child: ListView.builder(
                   itemCount: posts.length,
                   itemBuilder: (context, index) {
-                    // **PERBAIKAN:** Menambahkan argumen firestoreService yang diperlukan
                     return PostCard(
                       post: posts[index],
                       firestoreService: firestoreService,

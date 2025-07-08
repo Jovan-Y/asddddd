@@ -1,4 +1,4 @@
-// lib/screens/auth_gate.dart
+
 import 'package:flutter/material.dart';
 import 'package:hotel_review_app/services/auth_service.dart';
 
@@ -13,12 +13,12 @@ class _AuthGateState extends State<AuthGate> {
   final AuthService _authService = AuthService();
   final _formKey = GlobalKey<FormState>();
 
-  // Controller untuk input
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _fullNameController = TextEditingController(); // Hanya untuk registrasi
+  final _fullNameController = TextEditingController(); 
 
-  bool _isLogin = true; // Untuk beralih antara login dan registrasi
+  bool _isLogin = true; 
   bool _isLoading = false;
   String _errorMessage = '';
 
@@ -42,7 +42,6 @@ class _AuthGateState extends State<AuthGate> {
             _fullNameController.text.trim(),
           );
         }
-        // Jika berhasil, AuthHandler akan otomatis mengarahkan ke HomeScreen
       } catch (e) {
         setState(() {
           _errorMessage = e.toString();
@@ -82,7 +81,7 @@ class _AuthGateState extends State<AuthGate> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Header
+                    // header
                     Icon(Icons.hotel, size: 60, color: Colors.blueAccent),
                     const SizedBox(height: 16),
                     Text(
@@ -99,7 +98,6 @@ class _AuthGateState extends State<AuthGate> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Toggle Button
                     ToggleButtons(
                       isSelected: [_isLogin, !_isLogin],
                       onPressed: (index) {
@@ -124,7 +122,7 @@ class _AuthGateState extends State<AuthGate> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Form Fields
+                    // Fields
                     if (!_isLogin)
                       TextFormField(
                         controller: _fullNameController,
@@ -162,7 +160,7 @@ class _AuthGateState extends State<AuthGate> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Submit Button
+                    //submit
                     _isLoading
                         ? const CircularProgressIndicator()
                         : SizedBox(

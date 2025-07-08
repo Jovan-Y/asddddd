@@ -1,7 +1,7 @@
-// lib/screens/add_post_screen.dart
+
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart' show kIsWeb; // <-- Import untuk deteksi platform web
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -30,7 +30,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
   String? _selectedHotelName;
   String? _selectedPlaceId;
   List<Map<String, String>> _hotelSuggestions = [];
-  // Menggunakan XFile agar kompatibel di semua platform
+
   XFile? _imageFile;
 
   final FirestoreService _firestoreService = FirestoreService();
@@ -45,7 +45,6 @@ class _AddPostScreenState extends State<AddPostScreen> {
   }
 
   Future<void> _getCurrentLocation() async {
-    // ... (Fungsi ini tidak berubah)
     setState(() => _isLoading = true);
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -90,7 +89,6 @@ class _AddPostScreenState extends State<AddPostScreen> {
     }
   }
 
-  // **PERBAIKAN:** Fungsi unggah gambar yang mendukung web dan mobile
   Future<String?> _uploadImage(XFile image) async {
     try {
       final user = _auth.currentUser;
@@ -100,18 +98,17 @@ class _AddPostScreenState extends State<AddPostScreen> {
           .child('post_images')
           .child('${user.uid}_${DateTime.now().toIso8601String()}.jpg');
 
-      // Cek apakah aplikasi berjalan di web
       if (kIsWeb) {
-        // Untuk web, unggah data gambar sebagai bytes
+
         await storageRef.putData(await image.readAsBytes());
       } else {
-        // Untuk mobile, unggah file dari path
+
         await storageRef.putFile(File(image.path));
       }
       return await storageRef.getDownloadURL();
     } catch (e) {
       print("Error uploading image: $e");
-      // Menampilkan pesan error yang lebih spesifik kepada pengguna
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal mengunggah gambar: $e')),
       );
@@ -137,7 +134,6 @@ class _AddPostScreenState extends State<AddPostScreen> {
     String? imageUrl;
     if (_imageFile != null) {
       imageUrl = await _uploadImage(_imageFile!);
-      // Jika upload gagal, hentikan proses posting
       if (imageUrl == null) {
          setState(() => _isLoading = false);
          return;
@@ -260,7 +256,6 @@ class _AddPostScreenState extends State<AddPostScreen> {
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        // **PERBAIKAN:** Menampilkan gambar sesuai platform
                         image: DecorationImage(
                           image: kIsWeb
                               ? NetworkImage(_imageFile!.path)

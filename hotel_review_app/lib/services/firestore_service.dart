@@ -1,4 +1,4 @@
-// lib/services/firestore_service.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hotel_review_app/models/post.dart';
 
@@ -40,8 +40,6 @@ class FirestoreService {
 
   Future<void> toggleLike(String postId, String userId) async {
     DocumentReference postRef = _postsCollection.doc(postId);
-    
-    // Menggunakan transaksi untuk operasi yang aman
     return _db.runTransaction((transaction) async {
       DocumentSnapshot snapshot = await transaction.get(postRef);
       if (!snapshot.exists) {
@@ -51,12 +49,10 @@ class FirestoreService {
       List<String> likes = List<String>.from(snapshot['likes'] ?? []);
       
       if (likes.contains(userId)) {
-        // Jika user sudah like, hapus like-nya
         transaction.update(postRef, {
           'likes': FieldValue.arrayRemove([userId])
         });
       } else {
-        // Jika user belum like, tambahkan like-nya
         transaction.update(postRef, {
           'likes': FieldValue.arrayUnion([userId])
         });

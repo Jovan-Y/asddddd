@@ -1,4 +1,4 @@
-// lib/screens/splash_screen.dart
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hotel_review_app/main.dart'; 
