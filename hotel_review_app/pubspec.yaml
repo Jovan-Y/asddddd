@@ -13,46 +13,28 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.2
 
-  # Firebase Core
-  firebase_core: ^3.14.0 # Diperbarui dari 2.32.0
-  # Firebase Authentication
-  firebase_auth: ^5.6.0 # Diperbarui dari 4.20.0
-  # Cloud Firestore (Database)
-  cloud_firestore: ^5.6.9 # Diperbarui dari 4.17.5
-  # Firebase Storage (untuk gambar)
-  firebase_storage: ^12.1.1 # <-- DIKEMBALIKAN
 
-  # Untuk memilih gambar dari galeri/kamera
-  image_picker: ^1.0.7 # Sudah versi terbaru, tidak ada perubahan
-
-  # Untuk mendapatkan lokasi geografis
-  geolocator: ^14.0.1 # Diperbarui dari 11.1.0
-  # Dependensi geolocator lainnya juga diperbarui secara implisit oleh pub get
-  # geolocator_android: ^5.0.1+1
-  # geolocator_web: ^4.1.3
-
-  # Untuk menampilkan peta Google Maps
-  google_maps_flutter: ^2.5.3 # Sudah versi terbaru, tidak ada perubahan
-
-  # Untuk format tanggal dan waktu
-  intl: ^0.20.2 # Diperbarui dari 0.19.0
+  firebase_core: ^3.14.0 
+  firebase_auth: ^5.6.0 
+  cloud_firestore: ^5.6.9 
+  firebase_storage: ^12.1.1 
+  image_picker: ^1.0.7 
+  geolocator: ^14.0.1 
+  google_maps_flutter: ^2.5.3 
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0 # Diperbarui dari 3.0.2
-    # Untuk panggilan HTTP ke Google Places API
+  flutter_lints: ^6.0.0 
   http: ^1.2.1
 
-  # Untuk mengubah koordinat menjadi alamat (reverse geocoding)
   geocoding: ^4.0.0
 
-  # Untuk menampilkan input rating bintang
   flutter_rating_bar: ^4.0.1
 
 flutter:
   uses-material-design: true
-  # Untuk font Inter (opsional, bisa diganti)
   assets:
     - assets/
   fonts:
